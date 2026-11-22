@@ -1,4 +1,16 @@
 
+# Tahap pertama: instalasi dependensi
+FROM composer:2 AS vendor
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+
+RUN composer install --no-dev --no-interaction \
+    --prefer-dist --optimize-autoloader
+
+# Tahap kedua: image aplikasi
+
 FROM php:8.4-apache
 
 
@@ -18,6 +30,7 @@ RUN sed -i 's/^Listen 80$/Listen ${PORT}/' /etc/apache2/ports.conf \
       /etc/apache2/sites-available/000-default.conf \
  && echo 'FallbackResource /index.php' > /etc/apache2/conf-enabled/fallback.conf
 
+COPY --from=vendor /app/vendor /var/www/html/vendor
 # KEMBALI LAGI KE BAWAH
 COPY . /var/www/html/
 
